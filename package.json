@@ -1,0 +1,26 @@
+{
+  "name": "require-linter",
+  "version": "1.0.0",
+  "description": "Lints your require statements",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "providedServices": {
+    "linter": {
+      "versions": {
+        "1.0.0": "provideLinter"
+      }
+    }
+  },
+  "author": "formula1 <samtobia@gmail.com> (https://github.com/formula1)",
+  "license": "ISC",
+  "package-deps": [
+    "linter"
+  ],
+  "dependencies": {
+    "browser-resolve": "^1.9.1",
+    "module-deps": "^3.9.1",
+    "resolve": "^1.1.6"
+  }
+}
