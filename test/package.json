@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "async": "^1.5.2",
+    "defined": "^1.0.0",
+    "extra": "latest",
+    "more": "hey"
+  },
+  "devDependencies": {
+    "eslint": "^1.10.3",
+    "jscs": "^2.9.0",
+    "tap": "^5.2.0"
+  }
+}

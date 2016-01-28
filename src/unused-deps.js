@@ -7,18 +7,24 @@ var minimatch = require('minimatch');
 
 var checkDirectory, checkFile;
 
-module.exports = function(dir, ignore, allow, next){
+module.exports = function(pkg, dir, options, next){
+  var ignore = options.ignore;
+  var allow = options.allow;
 
   checkDirectory(dir, dir, ignore, allow, function(err, deps){
     if(err) return next(err);
-    var pkg;
     try{
-      pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json')));
+      pkg = JSON.parse(pkg);
     }catch(e){
       return next(e);
     }
 
-    next(void 0, Object.keys(pkg.dependencies).filter(function(dep){
+    var pkgdeps = Object.keys(pkg.dependencies);
+    if(options.checkDev){
+      pkgdeps = pkgdeps.concat(Object.keys(pkg.devDependencies));
+    }
+
+    next(void 0, pkgdeps.filter(function(dep){
       return deps.indexOf(dep) === -1;
     }));
   });
@@ -47,7 +53,7 @@ checkDirectory = function(base, dirname, ignore, allow, next){
         if(bErr) return next(bErr);
         var boo = stat.isDirectory();
         if(boo){
-          return checkDirectory(base, curPath, ignore, rNext);
+          return checkDirectory(base, curPath, ignore, allow, rNext);
         }else{
           checkFile(curPath, rNext);
         }

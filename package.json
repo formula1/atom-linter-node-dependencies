@@ -1,27 +1,47 @@
 {
-  "name": "require-linter",
+  "name": "atom-require-linter",
   "version": "1.0.0",
-  "description": "Lints your require statements",
+  "description": "Lints dependencies",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "dependencies": {
+    "async": "^1.5.2",
+    "defined": "^1.0.0",
+    "escodegen": "latest",
+    "resolve": "^1.1.6"
   },
+  "devDependencies": {
+    "eslint": "^1.10.3",
+    "jscs": "^2.9.0",
+    "tap": "^5.2.0"
+  },
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/formula1/atom-require-linter.git"
+  },
+  "keywords": [
+    "require",
+    "dependencies",
+    "deps",
+    "node",
+    "atom"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/formula1/atom-require-linter/issues"
+  },
+  "homepage": "https://github.com/formula1/atom-require-linter#readme",
+  "package-deps": [
+    "linter"
+  ],
   "providedServices": {
     "linter": {
       "versions": {
         "1.0.0": "provideLinter"
       }
     }
-  },
-  "author": "formula1 <samtobia@gmail.com> (https://github.com/formula1)",
-  "license": "ISC",
-  "package-deps": [
-    "linter"
-  ],
-  "dependencies": {
-    "async": "^1.5.2",
-    "defined": "^1.0.0",
-    "escodegen": "latest",
-    "resolve": "^1.1.6"
   }
 }
