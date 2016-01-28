@@ -85,7 +85,6 @@ lintProjectUnused = function(project, next){
   },
 
   function(err){
-    console.error(err);
     next(err, errors);
   });
 };
