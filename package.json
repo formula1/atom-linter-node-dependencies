@@ -19,10 +19,11 @@
     "linter"
   ],
   "dependencies": {
+    "async": "^1.5.2",
     "browser-resolve": "^1.9.1",
-    "module-deps": "^3.9.1",
-    "resolve": "^1.1.6",
+    "defined": "^1.0.0",
     "escodegen": "latest",
-    "defined": "^1.0.0"
+    "module-deps": "^3.9.1",
+    "resolve": "^1.1.6"
   }
 }

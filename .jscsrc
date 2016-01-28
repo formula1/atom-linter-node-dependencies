@@ -1,0 +1,9 @@
+{
+  "preset": "airbnb",
+  "disallowSpaceAfterKeywords": ["if", "else", "function", "while", "for"],
+  "requireSpaceAfterKeywords" : ["return"],
+  "requireSpaceBeforeBlockStatements": false,
+  "disallowSpaceBeforeBlockStatements": true,
+  "disallowMultipleVarDecl": false,
+  "requireCamelCaseOrUpperCaseIdentifiers": false
+}
