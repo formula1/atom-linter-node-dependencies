@@ -12,7 +12,8 @@
   "devDependencies": {
     "eslint": "^1.10.3",
     "jscs": "^2.9.0",
-    "tap": "^5.2.0"
+    "tap": "^5.2.0",
+    "poop": "latest"
   },
   "scripts": {
     "test": "node test"

@@ -1,14 +1,18 @@
 'use strict';
 
+var path = require('path');
+var fs = require('fs');
 var util = require('./util');
 var async = require('async');
+
+var walkdir = require('./walk-dir');
+
 var detective = require('./detective');
 var resolve = require('resolve');
-var checkUnused = require('./unused-deps');
-var fs = require('fs');
-var path = require('path');
 
-module.exports.lintProjectUnused = function(directories, options, next){
+var runner, createMissingError, createUnusedError;
+
+module.exports = function(directories, options, next){
   if(!(directories instanceof Array)) directories = [directories];
   if(!next){
     next = options;
@@ -33,77 +37,98 @@ module.exports.lintProjectUnused = function(directories, options, next){
 
   options.checkDev = options.checkDev || false;
 
-  var errors = [];
-  async.each(directories, function(dir, eNext){
+  async.concat(directories, runner.bind(void 0, options), next);
+};
+
+runner = function(options, dir, done){
+  var ignore = options.ignore;
+  var allow = options.allow;
+  var pkgtext;
+  var pkgdeps;
+  try{
+    pkgtext = fs.readFileSync(path.join(dir, 'package.json')).toString('utf-8');
+    var pkg;
     try{
-      var json = fs.readFileSync(path.join(dir, 'package.json')).toString('utf-8');
+      pkg = JSON.parse(pkgtext);
     }catch(e){
-      return eNext();
+      return done(e);
     }
 
-    var lines = json.split('\n');
+    pkgdeps = Object.keys(pkg.dependencies);
+    if(options.checkDev){
+      pkgdeps = pkgdeps.concat(Object.keys(pkg.devDependencies));
+    }
+  }catch(e){
+    pkgdeps = [];
+  }
 
-    checkUnused(json, dir, options, function(err, unusedarray){
-      if(err) return eNext(err);
-      unusedarray.forEach(function(unused){
-        var name = `\"${unused}\"`;
-        var pattern = new RegExp('.*[^\\\\]'.concat(name).concat('\\s*\\:.*'));
-        errors.push(
-          {
-            name: 'unused-dep',
-            message: unused,
-            filename: path.join(dir, 'package.json'),
-            location: util.findLineAndCol(lines, pattern, name)[0],
-          }
-        );
-      });
+  walkdir(dir, dir, ignore, allow, function(curPath, doNext){
+    fs.readFile(curPath, function(err, content){
+      if(err) return doNext(err);
+      var text = content.toString('utf8');
+      var founddeps;
+      try{
+        founddeps = detective(text);
+      }catch(e){
+        doNext(e);
+      }
 
-      eNext();
+      var lines;
+      var finished = [];
+
+      var errs = founddeps.reduce(function(missing, dep){
+        if(finished.indexOf(dep) !== -1) return missing;
+        finished.push(dep);
+        pkgdeps = pkgdeps.filter(function(pkgdep){
+          return founddeps.indexOf(pkgdep) === -1;
+        });
+
+        try{
+          resolve.sync(dep, {
+            basedir: path.dirname(curPath),
+          });
+          return missing;
+        }catch(e){
+          if(!lines) lines = text.split(/\n/g);
+          return missing.concat(createMissingError(curPath, lines, dep));
+        }
+      }, []);
+
+      doNext(void 0, errs);
     });
   },
 
-  function(err){
-    next(err, errors);
+  function(err, errors){
+    if(err) return done(err);
+    if(!pkgdeps.length) return done(void 0, errors);
+    var lines = pkgtext.split(/\n/g);
+    var pkgpath = path.join(dir, 'package.json');
+    done(void 0, errors.concat(pkgdeps.map(createUnusedError.bind(void 0, pkgpath, lines))));
   });
 };
 
-module.exports.lintTextEditor = function(text, filePath, next){
-
-  var errors = [];
-  var done = [];
-  var lines = void 0;
-  try{
-    var required = detective(text);
-  }catch(e){
-    return next(void 0, [e]);
-  }
-
-  async.eachSeries(required, function(name, nextItem){
-    try{
-      resolve.sync(name, {
-        basedir: path.dirname(filePath),
-      });
-    }catch(err){
-      if(!lines) lines = text.split(/\n/g);
-      if(done.indexOf(name) > -1) return;
-      done.push(name);
-      var escapedId = name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      var reg = new RegExp('.*require\\s*\\(.*'.concat(escapedId).concat('.*\\).*'));
-      var message = name.concat(' is missing from ').concat(filePath);
-      util.findLineAndCol(lines, reg, name).forEach(function(linecol){
-        errors.push({
-          name: 'missing-dep',
-          message: message,
-          filename: filePath,
-          location: linecol,
-        });
-      });
-    }finally{
-      return setImmediate(nextItem);
-    }
-  },
-
-  function(){
-    next(void 0, errors);
+createMissingError = function(filePath, lines, name){
+  var escapedId = name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  var reg = new RegExp('.*require\\s*\\(.*'.concat(escapedId).concat('.*\\).*'));
+  var message = name.concat(' is missing from ').concat(filePath);
+  return util.findLineAndCol(lines, reg, name).map(function(linecol){
+    return {
+      name: 'missing-dep',
+      message: message,
+      filename: filePath,
+      location: linecol,
+    };
   });
+};
+
+createUnusedError = function(filePath, lines, unused){
+  var name = `\"${unused}\"`;
+  var pattern = new RegExp('.*[^\\\\]'.concat(name).concat('\\s*\\:.*'));
+
+  return {
+    name: 'unused-dep',
+    message: unused,
+    filename: filePath,
+    location: util.findLineAndCol(lines, pattern, name)[0],
+  };
 };
