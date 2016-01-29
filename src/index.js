@@ -43,6 +43,15 @@ module.exports = function(directories, options, next){
 runner = function(options, dir, done){
   var ignore = options.ignore;
   var allow = options.allow;
+
+  if(options.includeGitIgnore !== false){
+    try{
+      ignore = ignore.concat(fs.readFileSync(path.resolve(dir, './.gitignore')).toString('utf8').split(/\n/g));
+    }catch(e){
+      console.error('cannot use .gitignore');
+    }
+  }
+
   var pkgtext;
   var pkgdeps;
   try{
@@ -70,7 +79,7 @@ runner = function(options, dir, done){
       try{
         founddeps = detective(text);
       }catch(e){
-        doNext(e);
+        return doNext([e]);
       }
 
       var lines;
@@ -90,7 +99,7 @@ runner = function(options, dir, done){
           return missing;
         }catch(e){
           if(!lines) lines = text.split(/\n/g);
-          return missing.concat(createMissingError(curPath, lines, dep));
+          return missing.concat(createMissingError(dir, curPath, lines, dep));
         }
       }, []);
 
@@ -107,10 +116,10 @@ runner = function(options, dir, done){
   });
 };
 
-createMissingError = function(filePath, lines, name){
+createMissingError = function(dir, filePath, lines, name){
   var escapedId = name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   var reg = new RegExp('.*require\\s*\\(.*'.concat(escapedId).concat('.*\\).*'));
-  var message = name.concat(' is missing from ').concat(filePath);
+  var message = name.concat(' is missing from ').concat(filePath.substring(dir.length));
   return util.findLineAndCol(lines, reg, name).map(function(linecol){
     return {
       name: 'missing-dep',
@@ -127,7 +136,7 @@ createUnusedError = function(filePath, lines, unused){
 
   return {
     name: 'unused-dep',
-    message: unused,
+    message: `${unused} has been installed but is not required by any file`,
     filename: filePath,
     location: util.findLineAndCol(lines, pattern, name)[0],
   };
