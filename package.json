@@ -7,13 +7,11 @@
     "async": "^1.5.2",
     "defined": "^1.0.0",
     "escodegen": "latest",
+    "minimatch": "latest",
     "resolve": "^1.1.6"
   },
   "devDependencies": {
-    "eslint": "^1.10.3",
-    "jscs": "^2.9.0",
-    "tap": "^5.2.0",
-    "poop": "latest"
+    "tap": "^5.2.0"
   },
   "scripts": {
     "test": "node test"
@@ -25,6 +23,7 @@
   "keywords": [
     "require",
     "resolve",
+    "dependency",
     "dependencies",
     "deps",
     "unused",
