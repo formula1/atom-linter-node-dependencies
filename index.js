@@ -11,7 +11,7 @@ module.exports = {
 
     return {
       showErrorInline: true,
-      name: 'require',
+      name: 'dependencies',
       grammarScopes: ['source.js', 'source.json'],
       scope: 'project',
       lintOnFly: false,

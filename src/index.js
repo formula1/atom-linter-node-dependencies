@@ -30,8 +30,8 @@ module.exports = function(directories, options, next){
   ];
 
   options.allow = options.allow || [
-    '*.js',
-    '*.jsx',
+    '**.js',
+    '**.jsx',
     '!*.*',
   ];
 
@@ -71,6 +71,8 @@ runner = function(options, dir, done){
     pkgdeps = [];
   }
 
+  console.log(pkgdeps);
+
   walkdir(dir, dir, ignore, allow, function(curPath, doNext){
     fs.readFile(curPath, function(err, content){
       if(err) return doNext(err);
@@ -89,7 +91,9 @@ runner = function(options, dir, done){
         if(finished.indexOf(dep) !== -1) return missing;
         finished.push(dep);
         pkgdeps = pkgdeps.filter(function(pkgdep){
-          return founddeps.indexOf(pkgdep) === -1;
+          return !founddeps.some(function(fdep){
+            return fdep.indexOf(pkgdep) === 0;
+          });
         });
 
         try{
@@ -112,6 +116,7 @@ runner = function(options, dir, done){
     if(!pkgdeps.length) return done(void 0, errors);
     var lines = pkgtext.split(/\n/g);
     var pkgpath = path.join(dir, 'package.json');
+    console.log(pkgdeps);
     done(void 0, errors.concat(pkgdeps.map(createUnusedError.bind(void 0, pkgpath, lines))));
   });
 };

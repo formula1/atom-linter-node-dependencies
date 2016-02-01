@@ -1,6 +1,6 @@
 'use strict';
 
-var acorn = require('acorn/dist/acorn_csp');
+var acorn = require('acorn/dist/acorn');
 var walk = require('acorn/dist/walk');
 var escodegen = require('escodegen');
 var defined = require('defined');
