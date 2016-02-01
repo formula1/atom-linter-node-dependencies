@@ -1,6 +1,6 @@
 {
   "name": "atom-require-linter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Lints dependencies",
   "main": "index.js",
   "dependencies": {
