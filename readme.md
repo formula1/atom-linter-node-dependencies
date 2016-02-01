@@ -1,4 +1,4 @@
-# Linter Require
+# Linter Node Dependencies
 
 #### This lints node dependencies in two forms.
 - Lints Files to check if their require statements can be resolved
